@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { EnvelopeIcon, PlusIcon, KeyIcon } from '@heroicons/react/24/outline';
 import api from '../api/axios';
 
@@ -7,6 +7,7 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,10 +18,11 @@ const SignUp = () => {
     }
 
     try {
-      await api.post('/users/register/', { email, password });
-      window.location.href = '/login';
+      await api.post('/account/signup', { email, password });
+      alert('Create user succeeded.')
+      navigate('/login');
     } catch (error) {
-      console.error('Sign up failed', error);
+      alert(`Sign up failed. Error: ${error.code}`)
     }
   };
 

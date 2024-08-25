@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { EnvelopeIcon, KeyIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { loginStart, loginSuccess, loginFailure } from '../redux/authSlice';
 import api from '../api/axios';
@@ -8,18 +8,39 @@ import api from '../api/axios';
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { error, token } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      navigate('/');
+    }
+  }, [token, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      alert(`${error.status} - ${error.statusText}\n${error.message}`);
+    }
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch(loginStart());
 
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/account/login', { email, password });
+
       dispatch(loginSuccess(response.data));
-      localStorage.setItem('token', response.data.token); // Save token to localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('refreshToken', response.data.refreshToken)
+      navigate('/songs');
     } catch (error) {
-      dispatch(loginFailure(error.response.data));
+      dispatch(loginFailure({
+        'status': error.response.status,
+        'statusText': error.response.statusText,
+        'message': error.response.data.message
+      }));
     }
   };
 
